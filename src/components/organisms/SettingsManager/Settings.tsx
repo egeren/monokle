@@ -104,6 +104,16 @@ export const Settings = ({
     setLocalConfig({...localConfig, fileIncludes: patterns});
   };
 
+  const onChangeNamespaces = (namespaces: string[]) => {
+    setLocalConfig({
+      ...localConfig,
+      settings: {
+        ...localConfig?.settings,
+        clusterNamespaces: namespaces,
+      },
+    });
+  };
+
   const onChangeScanExcludes = (patterns: string[]) => {
     setLocalConfig({...localConfig, scanExcludes: patterns});
   };
@@ -343,6 +353,16 @@ export const Settings = ({
             </Checkbox>
           </Tooltip>
         </S.Div>
+      </S.Div>
+      <S.Div>
+        <S.Span>Namespaces</S.Span>
+        <FilePatternList
+          value={localConfig?.settings?.clusterNamespaces || []}
+          onChange={onChangeNamespaces}
+          tooltip={AddInclusionPatternTooltip}
+          isSettingsOpened={isSettingsOpened}
+          addButtonLabel="Add namespace"
+        />
       </S.Div>
       {/* <StyledDiv>
         <StyledSpan>Theme</StyledSpan>

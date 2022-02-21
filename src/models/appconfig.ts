@@ -27,6 +27,7 @@ export type Settings = {
   enableHelmWithKustomize?: boolean;
   createDefaultObjects?: boolean;
   setDefaultPrimitiveValues?: boolean;
+  clusterNamespaces?: string[];
 };
 
 export enum NewVersionCode {
@@ -37,6 +38,17 @@ export enum NewVersionCode {
   Available = 2,
   Downloading = 3,
   Downloaded = 4,
+}
+
+export type KubePermissions = {
+  resourceName: string;
+  verbs: string[];
+}
+
+export type ClusterAccess = {
+  permissions: KubePermissions[];
+  hasFullAccess: boolean;
+  namespace: string;
 }
 
 // Parsed from kubernetes config file
@@ -68,6 +80,7 @@ export type ProjectConfig = {
   scanExcludes?: string[];
   fileIncludes?: string[];
   folderReadsMaxDepth?: number;
+  clusterAccess?: ClusterAccess;
 };
 
 interface AppConfig {

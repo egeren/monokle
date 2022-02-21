@@ -22,6 +22,7 @@ type FilePatternListProps = {
   tooltip: string;
   isSettingsOpened?: boolean;
   type?: 'excludes' | 'includes';
+  addButtonLabel?: string;
 };
 
 const StyledUl = styled.ul`
@@ -35,7 +36,7 @@ const StyledButton = styled(Button)`
 `;
 
 const FilePatternList = (props: FilePatternListProps) => {
-  const {value, onChange, tooltip, isSettingsOpened, type} = props;
+  const {value, onChange, tooltip, isSettingsOpened, type, addButtonLabel} = props;
 
   const dispatch = useAppDispatch();
 
@@ -121,7 +122,7 @@ const FilePatternList = (props: FilePatternListProps) => {
         <>
           <Tooltip title={tooltip}>
             <Button onClick={() => setIsAddingPattern(true)} style={{marginRight: 10}}>
-              Add Pattern
+              {addButtonLabel || 'Add Pattern'}
             </Button>
           </Tooltip>
           {appConfig.isScanExcludesUpdated === 'outdated' && type === 'excludes' ? (

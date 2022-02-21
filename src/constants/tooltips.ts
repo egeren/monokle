@@ -23,6 +23,7 @@ export const HelmPreviewTooltip = 'Preview the Helm Chart with this values file'
 export const ReloadHelmPreviewTooltip = 'Reload the Helm Chart preview with this values file';
 export const ExitHelmPreviewTooltip = 'Exit Helm Chart preview (Escape)';
 export const ApplyFileTooltip = `Apply this file to your configured cluster (${KEY_CTRL_CMD}+ALT+S)`;
+export const CannotDeployFileTooltip = 'You do not have permissions to deploy this resource';
 export const ApplyTooltip = `Apply this resource to your configured cluster (${KEY_CTRL_CMD}+ALT+S)`;
 export const DiffTooltip = `Diff this resource against your configured cluster (${KEY_CTRL_CMD}+ALT+D)`;
 export const NamespacesFilterTooltip = 'Filter visible resources on selected namespace';

@@ -68,6 +68,12 @@ const schema = {
           setDefaultPrimitiveValues: {
             type: 'boolean',
           },
+          clusterNamespaces: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
         },
       },
       recentFolders: {

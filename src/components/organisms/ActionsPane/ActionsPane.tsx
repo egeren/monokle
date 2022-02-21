@@ -18,6 +18,7 @@ import {makeApplyKustomizationText, makeApplyResourceText} from '@constants/make
 import {
   ApplyFileTooltip,
   ApplyTooltip,
+  CannotDeployFileTooltip,
   DiffTooltip,
   OpenExternalDocumentationTooltip,
   OpenKustomizeDocumentationTooltip,
@@ -57,6 +58,7 @@ import {
 import {Icon, TabHeader} from '@atoms';
 
 import {openExternalResourceKindDocumentation} from '@utils/shell';
+import {hasAccessToResource} from '@utils/kubeclient';
 
 import featureFlags from '@src/feature-flags.json';
 import {getResourceKindHandler} from '@src/kindhandlers';
@@ -92,6 +94,7 @@ const ActionsPane: React.FC<IProps> = props => {
   const paneConfiguration = useAppSelector(state => state.ui.paneConfiguration);
   const previewLoader = useAppSelector(state => state.main.previewLoader);
   const previewType = useAppSelector(state => state.main.previewType);
+  const clusterAccess = useAppSelector(state => state.config.projectConfig?.clusterAccess);
   const resourceMap = useAppSelector(state => state.main.resourceMap);
   const selectedPath = useAppSelector(state => state.main.selectedPath);
   const selectedResourceId = useAppSelector(state => state.main.selectedResourceId);
@@ -365,6 +368,25 @@ const ActionsPane: React.FC<IProps> = props => {
     setSchemaForSelectedPath(selectedPath ? getSchemaForPath(selectedPath, fileMap) : undefined);
   }, [selectedPath, fileMap]);
 
+  const canDeployResource = hasAccessToResource(selectedResource ? selectedResource?.kind?.toLowerCase() : '', 'deploy', clusterAccess);
+  const getDeployTooltip = () => {
+    if (!canDeployResource) {
+      return CannotDeployFileTooltip;
+    }
+
+    return selectedPath ? ApplyFileTooltip : ApplyTooltip;
+  };
+  const isDeployButtonDisabled = () => {
+    if (!canDeployResource) {
+      return true;
+    }
+
+    return (!selectedResourceId && !selectedPath) ||
+      (selectedResource &&
+        !isKustomizationResource(selectedResource) &&
+        (isKustomizationPatch(selectedResource) || !knownResourceKinds.includes(selectedResource.kind)));
+  };
+
   return (
     <S.ActionsPaneMainContainer ref={actionsPaneRef}>
       <div ref={titleBarRef}>
@@ -395,7 +417,7 @@ const ActionsPane: React.FC<IProps> = props => {
 
             <Tooltip
               mouseEnterDelay={TOOLTIP_DELAY}
-              title={selectedPath ? ApplyFileTooltip : ApplyTooltip}
+              title={getDeployTooltip()}
               placement="bottomLeft"
             >
               <Button
@@ -404,12 +426,7 @@ const ActionsPane: React.FC<IProps> = props => {
                 size="small"
                 ghost
                 onClick={applySelection}
-                disabled={
-                  (!selectedResourceId && !selectedPath) ||
-                  (selectedResource &&
-                    !isKustomizationResource(selectedResource) &&
-                    (isKustomizationPatch(selectedResource) || !knownResourceKinds.includes(selectedResource.kind)))
-                }
+                disabled={isDeployButtonDisabled()}
                 icon={<Icon name="kubernetes" />}
               >
                 Deploy

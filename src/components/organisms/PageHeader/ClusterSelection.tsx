@@ -40,6 +40,7 @@ const ClusterSelection = ({previewResource}: {previewResource?: K8sResource}) =>
   const kubeConfigContexts = useAppSelector(kubeConfigContextsSelector);
   const kubeConfigPath = useAppSelector(kubeConfigPathSelector);
   const previewLoader = useAppSelector(state => state.main.previewLoader);
+  const clusterAccess = useAppSelector(state => state.config.projectConfig?.clusterAccess);
   const previewType = useAppSelector(state => state.main.previewType);
   const projectConfig = useAppSelector(state => state.config.projectConfig);
 
@@ -152,6 +153,7 @@ const ClusterSelection = ({previewResource}: {previewResource?: K8sResource}) =>
           <S.ClusterStatusText connected={isKubeConfigPathValid}>
             <S.ClusterOutlined />
             <span>{isKubeConfigPathValid ? 'Configured' : 'No Cluster Configured'}</span>
+            <span>|||{clusterAccess?.hasFullAccess ? 'yey' : 'ney'}</span>
           </S.ClusterStatusText>
 
           <S.Divider type="vertical" />
@@ -168,7 +170,7 @@ const ClusterSelection = ({previewResource}: {previewResource?: K8sResource}) =>
               onVisibleChange={setIsClusterDropdownOpen}
             >
               <S.ClusterButton type="link" ref={dropdownButtonRef}>
-                <S.ClusterContextName>{kubeConfigContext}</S.ClusterContextName>
+                <S.ClusterContextName>{kubeConfigContext}||aaa</S.ClusterContextName>
                 <S.DownOutlined />
               </S.ClusterButton>
             </Dropdown>
