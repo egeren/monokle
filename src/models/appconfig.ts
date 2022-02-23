@@ -79,7 +79,7 @@ export type ProjectConfig = {
   scanExcludes?: string[];
   fileIncludes?: string[];
   folderReadsMaxDepth?: number;
-  clusterAccess?: ClusterAccess;
+  clusterAccess?: ClusterAccess[];
 };
 
 interface AppConfig {

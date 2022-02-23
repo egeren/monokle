@@ -7,7 +7,6 @@ import {Input, Modal, Radio, Select} from 'antd';
 import {ExclamationCircleOutlined} from '@ant-design/icons';
 
 import styled from 'styled-components';
-import log from 'loglevel';
 
 import {K8sResource} from '@models/k8sresource';
 
@@ -16,7 +15,7 @@ import {kubeConfigContextSelector, kubeConfigPathSelector} from '@redux/selector
 
 import {useTargetClusterNamespaces} from '@hooks/useTargetClusterNamespaces';
 
-import {createKubeClient, hasAccessToResource} from '@utils/kubeclient';
+import {createKubeClient} from '@utils/kubeclient';
 import {getDefaultNamespaceForApply} from '@utils/resources';
 
 import Colors from '@styles/Colors';
@@ -64,16 +63,17 @@ const ModalConfirmWithNamespaceSelect: React.FC<IProps> = props => {
 
   const configState = useAppSelector(state => state.config);
   const clusterAccess = useAppSelector(state => state.config.projectConfig?.clusterAccess);
-  const {defaultNamespace, defaultOption} = getDefaultNamespaceForApply(resources, clusterAccess?.namespace);
+  const clusterNamespaces = clusterAccess?.map((cl) => cl.namespace);
+  const defaultClusterNamespace = clusterNamespaces && clusterNamespaces.length ? clusterNamespaces[0] : 'default';
+  const {defaultNamespace, defaultOption} = getDefaultNamespaceForApply(resources, defaultClusterNamespace);
   const [namespaces] = useTargetClusterNamespaces();
+
+  const hasOneNamespaceWithFullAccess = clusterAccess?.length === 1 && clusterAccess[0].hasFullAccess;
 
   const [createNamespaceName, setCreateNamespaceName] = useState<string>();
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedNamespace, setSelectedNamespace] = useState(defaultNamespace);
   const [selectedOption, setSelectedOption] = useState<'existing' | 'create' | 'none'>();
-  const canCreateNamespace = hasAccessToResource('namespace', 'create', clusterAccess);
-
-  log.info('selectedOption', selectedOption);
 
   const onClickOk = useCallback(() => {
     if (selectedOption === 'create') {
@@ -109,7 +109,7 @@ const ModalConfirmWithNamespaceSelect: React.FC<IProps> = props => {
       setSelectedOption('none');
       setSelectedNamespace('default');
       setCreateNamespaceName('');
-    } else if (!namespaces.includes(defaultNamespace) && canCreateNamespace) {
+    } else if (!namespaces.includes(defaultNamespace) && hasOneNamespaceWithFullAccess) {
       setSelectedOption('create');
       setSelectedNamespace('default');
       setCreateNamespaceName(defaultNamespace);
@@ -155,7 +155,7 @@ const ModalConfirmWithNamespaceSelect: React.FC<IProps> = props => {
           value={selectedOption}
         >
           <Radio value="existing">Use existing namespace</Radio>
-          { canCreateNamespace && <Radio value="create">Create namespace</Radio> }
+          { hasOneNamespaceWithFullAccess && <Radio value="create">Create namespace</Radio> }
           <Radio value="none">None</Radio>
         </Radio.Group>
 

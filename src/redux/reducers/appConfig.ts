@@ -228,7 +228,7 @@ export const configSlice = createSlice({
         writeProjectConfigFile(state);
       }
     },
-    updateProjectKubeAccess: (state: Draft<AppConfig>, action: PayloadAction<ClusterAccess>) => {
+    updateProjectKubeAccess: (state: Draft<AppConfig>, action: PayloadAction<ClusterAccess[]>) => {
       if (!state.selectedProjectRootFolder) {
         return;
       }
