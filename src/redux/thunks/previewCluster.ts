@@ -20,36 +20,24 @@ import {createKubeClient} from '@utils/kubeclient';
 
 import {getRegisteredKindHandlers, getResourceKindHandler} from '@src/kindhandlers';
 
-const getNonCustomClusterObjects = async (kc: any, namespace: string) => {
-  return Promise.allSettled(
-    getRegisteredKindHandlers()
-      .filter(handler => !handler.isCustom)
-      .map(resourceKindHandler =>
-        resourceKindHandler
-          .listResourcesInCluster(kc, { namespace })
-          .then(items => getK8sObjectsAsYaml(items, resourceKindHandler.kind, resourceKindHandler.clusterApiVersion))
-    )
-  );
-};
-
 const previewClusterHandler = async (context: string, thunkAPI: any) => {
-  // TODO fix-types
-  const resourceRefsProcessingOptions = thunkAPI.getState().main.resourceRefsProcessingOptions;
+  const state = thunkAPI.getState();
+  const resourceRefsProcessingOptions = state.main.resourceRefsProcessingOptions;
+  const clusterAccess = state.config.projectConfig?.clusterAccess;
   try {
-    const kc = createKubeClient(thunkAPI.getState().config, context);
-    const namespaces = thunkAPI.getState().config.projectConfig?.settings?.clusterNamespaces;
-    if (!namespaces || !namespaces.length) {
-      return createRejectionWithAlert(thunkAPI, 'Cluster Resources Failed', 'Please configure a namespace');
-    }
-    const promises = namespaces?.map((namespace: any) => getNonCustomClusterObjects(kc, namespace));
-    const results: any = await Promise.allSettled<any>(promises);
-    const fulfilledResults1: any = results.filter((r: any) => r.status === 'fulfilled' && r.value);
-    const resources: any = [];
-    fulfilledResults1.forEach((fulfilledResult: any) => {
-      resources.push(...fulfilledResult.value);
-    });
+    const kc = createKubeClient(state.config, context);
 
-    const fulfilledResults = resources.filter((r: any) => r.status === 'fulfilled' && r.value);
+    const results = await Promise.allSettled(
+      getRegisteredKindHandlers()
+        .filter(handler => !handler.isCustom)
+        .map(resourceKindHandler =>
+          resourceKindHandler
+            .listResourcesInCluster(kc, { namespace: clusterAccess?.namespace })
+            .then(items => getK8sObjectsAsYaml(items, resourceKindHandler.kind, resourceKindHandler.clusterApiVersion))
+        )
+    );
+
+    const fulfilledResults = results.filter(r => r.status === 'fulfilled' && r.value);
     if (fulfilledResults.length === 0) {
       return createRejectionWithAlert(
         thunkAPI,
@@ -76,7 +64,7 @@ const previewClusterHandler = async (context: string, thunkAPI: any) => {
       r => r.kind === 'CustomResourceDefinition'
     );
     if (customResourceDefinitions.length > 0) {
-      const customResourceObjects = await loadCustomResourceObjects(kc, customResourceDefinitions);
+      const customResourceObjects = await loadCustomResourceObjects(kc, customResourceDefinitions, clusterAccess.namespace as string);
 
       // if any were found we need to merge them into the preview-result
       if (customResourceObjects.length > 0) {
@@ -96,7 +84,7 @@ const previewClusterHandler = async (context: string, thunkAPI: any) => {
     }
 
     if (fulfilledResults.length < results.length) {
-      const rejectedResult = results.find((r: any) => r.status === 'rejected');
+      const rejectedResult = results.find(r => r.status === 'rejected');
       if (rejectedResult) {
         // @ts-ignore
         const reason = rejectedResult.reason ? rejectedResult.reason.toString() : JSON.stringify(rejectedResult);
@@ -195,7 +183,7 @@ export function findDefaultVersion(crd: any) {
  * Load custom resource objects for CRDs found in cluster
  */
 
-async function loadCustomResourceObjects(kc: KubeConfig, customResourceDefinitions: K8sResource[]): Promise<string[]> {
+async function loadCustomResourceObjects(kc: KubeConfig, customResourceDefinitions: K8sResource[], namespace: string): Promise<string[]> {
   const k8sApi = kc.makeApiClient(k8s.CustomObjectsApi);
 
   try {
@@ -204,8 +192,7 @@ async function loadCustomResourceObjects(kc: KubeConfig, customResourceDefinitio
       .map(crd => {
         const kindHandler = getResourceKindHandler(crd.content.spec.names?.kind);
         if (kindHandler) {
-          // TODO fix-types
-          return kindHandler.listResourcesInCluster(kc, { namespace: 'test' }, crd).then(response =>
+          return kindHandler.listResourcesInCluster(kc, { namespace }, crd).then(response =>
             // @ts-ignore
             getK8sObjectsAsYaml(response.body.items)
           );

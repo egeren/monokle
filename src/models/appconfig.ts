@@ -27,7 +27,6 @@ export type Settings = {
   enableHelmWithKustomize?: boolean;
   createDefaultObjects?: boolean;
   setDefaultPrimitiveValues?: boolean;
-  clusterNamespaces?: string[];
 };
 
 export enum NewVersionCode {

@@ -3,6 +3,7 @@ import {Draft, PayloadAction, createAsyncThunk, createSlice} from '@reduxjs/tool
 import {existsSync, mkdirSync} from 'fs';
 import _ from 'lodash';
 import path from 'path';
+import log from 'loglevel';
 import {execSync} from 'child_process';
 
 import {
@@ -137,12 +138,11 @@ export const configSlice = createSlice({
       electronStore.set('appConfig.folderReadsMaxDepth', action.payload);
       state.folderReadsMaxDepth = action.payload;
     },
-    updateClusterNamespaces: (state: Draft<AppConfig>, action: PayloadAction<string[]>) => {
-      electronStore.set('appConfig.settings.clusterNamespaces', action.payload);
-      state.settings.clusterNamespaces = action.payload;
-    },
     setCurrentContext: (state: Draft<AppConfig>, action: PayloadAction<string>) => {
-      execSync(`kubectl config use-context ${action.payload}`);
+      const stdOut = execSync(`kubectl config use-context ${action.payload}`);
+      log.info('stdOut', stdOut.toString());
+      log.info('setCurrentContext action.payload', action.payload);
+      electronStore.set('kubeConfig.currentContext', action.payload);
       state.kubeConfig.currentContext = action.payload;
     },
     setScanExcludesStatus: (state: Draft<AppConfig>, action: PayloadAction<'outdated' | 'applied'>) => {
@@ -340,6 +340,5 @@ export const {
   changeProjectsRootPath,
   updateApplicationSettings,
   updateProjectKubeAccess,
-  updateClusterNamespaces,
 } = configSlice.actions;
 export default configSlice.reducer;

@@ -146,6 +146,23 @@ const ClusterSelection = ({previewResource}: {previewResource?: K8sResource}) =>
   if (!isClusterSelectorVisible) {
     return null;
   }
+
+  const clusterAccessInfo = () => {
+    if (clusterAccess?.hasFullAccess) {
+      return {
+        icon: <S.CheckCircleOutlined />,
+        tooltip: `You have full access to this cluster and namespace: ${clusterAccess?.namespace}`
+      };
+    }
+
+    return {
+      icon: <S.ExclamationCircleOutlinedWarning />,
+      tooltip: `You do not have full access to this cluster and namespace: ${clusterAccess?.namespace}`
+    };
+  };
+
+  const {icon, tooltip} = clusterAccessInfo();
+
   return (
     <S.ClusterContainer id="ClusterContainer">
       {activeProject && (
@@ -153,7 +170,10 @@ const ClusterSelection = ({previewResource}: {previewResource?: K8sResource}) =>
           <S.ClusterStatusText connected={isKubeConfigPathValid}>
             <S.ClusterOutlined />
             <span>{isKubeConfigPathValid ? 'Configured' : 'No Cluster Configured'}</span>
-            <span>|||{clusterAccess?.hasFullAccess ? 'yey' : 'ney'}</span>
+
+            <Tooltip mouseEnterDelay={TOOLTIP_DELAY} title={tooltip}>
+              <S.ClusterAccessContainer>{icon}</S.ClusterAccessContainer>
+            </Tooltip>
           </S.ClusterStatusText>
 
           <S.Divider type="vertical" />
@@ -170,7 +190,7 @@ const ClusterSelection = ({previewResource}: {previewResource?: K8sResource}) =>
               onVisibleChange={setIsClusterDropdownOpen}
             >
               <S.ClusterButton type="link" ref={dropdownButtonRef}>
-                <S.ClusterContextName>{kubeConfigContext}||aaa</S.ClusterContextName>
+                <S.ClusterContextName>{kubeConfigContext}</S.ClusterContextName>
                 <S.DownOutlined />
               </S.ClusterButton>
             </Dropdown>
