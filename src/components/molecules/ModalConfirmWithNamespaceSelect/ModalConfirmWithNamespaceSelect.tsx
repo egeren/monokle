@@ -102,7 +102,7 @@ const ModalConfirmWithNamespaceSelect: React.FC<IProps> = props => {
     } else if (selectedOption === 'none') {
       onOk();
     }
-  }, [kubeConfigContext, createNamespaceName, kubeConfigPath, selectedNamespace, selectedOption, onOk, configState]);
+  }, [createNamespaceName, kubeConfigPath, selectedNamespace, selectedOption, onOk, configState]);
 
   useEffect(() => {
     if (defaultOption && defaultOption === 'none') {
@@ -118,7 +118,7 @@ const ModalConfirmWithNamespaceSelect: React.FC<IProps> = props => {
       setSelectedNamespace(defaultNamespace);
       setCreateNamespaceName('');
     }
-  }, [defaultOption, defaultNamespace, namespaces]);
+  }, [defaultOption, defaultNamespace, namespaces, hasOneNamespaceWithFullAccess]);
 
   const onlyNamespaces = useMemo(() => resources.every(r => r.kind === 'Namespace'), [resources]);
   const hasNamespaces = useMemo(() => resources.some(r => r.kind === 'Namespace'), [resources]);

@@ -3,7 +3,6 @@ import {Draft, PayloadAction, createAsyncThunk, createSlice} from '@reduxjs/tool
 import {existsSync, mkdirSync} from 'fs';
 import _ from 'lodash';
 import path from 'path';
-import log from 'loglevel';
 import {execSync} from 'child_process';
 
 import {
@@ -139,9 +138,7 @@ export const configSlice = createSlice({
       state.folderReadsMaxDepth = action.payload;
     },
     setCurrentContext: (state: Draft<AppConfig>, action: PayloadAction<string>) => {
-      const stdOut = execSync(`kubectl config use-context ${action.payload}`);
-      log.info('stdOut', stdOut.toString());
-      log.info('setCurrentContext action.payload', action.payload);
+      execSync(`kubectl config use-context ${action.payload}`);
       electronStore.set('kubeConfig.currentContext', action.payload);
       state.kubeConfig.currentContext = action.payload;
     },
